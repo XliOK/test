@@ -16,7 +16,7 @@ OSS_ACCESS_KEY_ID = os.environ["OSS_ACCESS_KEY_ID"]
 OSS_ACCESS_KEY_SECRET = os.environ["OSS_ACCESS_KEY_SECRET"]
 OSS_BUCKET_NAME = "zqb-client"
 OSS_ENDPOINT = "oss-cn-beijing.aliyuncs.com"
-OSS_BASE_DIR = "zqb/branches/196270"
+OSS_BASE_DIR = "zqb/branches/195270"
 
 headers = {
     "Authorization": f"token {TOKEN}"
