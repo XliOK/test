@@ -1,76 +1,54 @@
-name: Upload to OSS
+name: Upload to Aliyun OSS
 
 on:
   push:
-    branches-ignore:
-      - '**'
-    tags-ignore:
-      - '**'
-  workflow_dispatch:
+    branches:
+      - main
 
 jobs:
-  prepare:
+  fetch_branches:
     runs-on: ubuntu-latest
     outputs:
-      total_branches: ${{ steps.set_total_branches.outputs.total_branches }}
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-        with:
-          ref: 'master'
-          fetch-depth: 0
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        repository: xxTree/ManifestAutoUpdate
+        ref: main
 
-      - name: Calculate total number of numeric branches
-        id: set_total_branches
-        run: |
-          git fetch --all
-          total_branches=$(git branch -a | grep -E '^\s*remotes/origin/\d+$' | wc -l)
-          echo "::set-output name=total_branches::$total_branches"
+    - name: Set matrix for parallel jobs
+      id: set-matrix
+      run: |
+        branches=$(git branch -r | grep -oP '\d+' | jq -R . | jq -s .)
+        chunks=$(echo $branches | jq -c '[(. | length / 20 | ceil) as $n | range(0; $n) as $i | .[($i*$n):($i*$n+$n)]]')
+        echo "::set-output name=matrix::{\"chunks\":$chunks}"
 
-  upload-to-oss:
-    needs: prepare
+  upload_to_oss:
+    needs: fetch_branches
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        job_num: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
-
+        chunk: ${{fromJson(needs.fetch_branches.outputs.matrix).chunks}}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-        with:
-          ref: 'master'
-          fetch-depth: 0
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        repository: xxTree/ManifestAutoUpdate
+        fetch-depth: 0
 
-      - name: Install Alibaba Cloud OSSUtil
-        run: |
-          wget https://gosspublic.alicdn.com/ossutil/1.7.7/ossutil64
-          chmod 755 ossutil64
-          sudo mv ossutil64 /usr/local/bin/ossutil
+    - name: Setup OSSUtil
+      run: |
+        curl -O https://gosspublic.alicdn.com/ossutil/1.7.7/ossutil64
+        chmod 755 ossutil64
+        sudo mv ossutil64 /usr/local/bin/ossutil
 
-      - name: Upload to OSS
-        env:
-          OSS_ACCESS_KEY_ID: ${{ secrets.OSS_ACCESS_KEY_ID }}
-          OSS_ACCESS_KEY_SECRET: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
-        run: |
-          git fetch --all
-          total_branches=${{ needs.prepare.outputs.total_branches }}
-          all_branches=$(git branch -a | grep -E '^\s*remotes/origin/\d+$' | sed 's|^\s*remotes/origin/||')
-          num_jobs=20
-          branches_per_job=$((total_branches / num_jobs))
-          remainder=$((total_branches % num_jobs))
+    - name: Configure OSSUtil
+      run: ossutil config -e oss-cn-beijing.aliyuncs.com -i ${{ secrets.ALIYUN_ACCESS_KEY_ID }} -k ${{ secrets.ALIYUN_ACCESS_KEY_SECRET }} -L CH
 
-          if [[ "${{ matrix.job_num }}" -le $remainder ]]; then
-            ((branches_per_job++))
-            start_index=$(((${{ matrix.job_num }} - 1) * branches_per_job))
-          else
-            start_index=$(((${{ matrix.job_num }} - 1) * branches_per_job + remainder))
-          fi
-
-          end_index=$(($start_index + branches_per_job - 1))
-
-          branches_to_upload=$(echo "$all_branches" | sed -n "$start_index,$end_index p")
-          
-          for branch in $branches_to_upload; do
-            git checkout $branch
-            ossutil config --access-key-id $OSS_ACCESS_KEY_ID --access-key-secret $OSS_ACCESS_KEY_SECRET --endpoint oss-cn-beijing.aliyuncs.com --language EN
-            ossutil cp -r . oss://zqb-client/zqb/branches/$branch/ --exclude ".git
+    - name: Upload to OSS
+      run: |
+        for branch in $(echo '${{matrix.chunk}}' | jq -r '.[]'); do
+          git checkout $branch
+          ossutil cp -rf . oss://zqb-client/zqb/branches/$branch --exclude ".git/*"
+        done
