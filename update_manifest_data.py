@@ -24,6 +24,7 @@ headers = {
 
 def check_remaining_count(github):
     global remaining_count
+    print(f"看看自定义剩余次数：{remaining_count}")
     rate_limit = github.get_rate_limit()
     remaining = rate_limit.core.remaining
     reset_time = rate_limit.core.reset
@@ -39,6 +40,7 @@ def check_remaining_count(github):
         print(f"剩余请求次数: {remaining}")
         print(f"限制将在 {reset_time_datetime} 重置,现在的时间是 {datetime.now()}")
         remaining_count = remaining
+        print(f"看看自定义剩余次数：{remaining_count}")
 
 def upload_to_oss(branch, file_name, content):
     auth = oss2.Auth(OSS_ACCESS_KEY_ID, OSS_ACCESS_KEY_SECRET)
@@ -57,15 +59,18 @@ def update_api(data):
 
 def fetch_data(repo, branch, github):
     global remaining_count
+    print(f"看看自定义剩余次数：{remaining_count}")
     if remaining_count <= 1:
         check_remaining_count(github)
     branch_obj = repo.get_branch(branch)
     remaining_count = remaining_count - 1
+    print(f"看看自定义剩余次数：{remaining_count}")
     commit_sha = branch_obj.commit.sha
     if remaining_count <= 1:
         check_remaining_count(github)
     contents = repo.get_contents("", ref=branch)
     remaining_count = remaining_count - 1
+    print(f"看看自定义剩余次数：{remaining_count}")
 
     files_data = []
     for item in contents:
@@ -97,13 +102,14 @@ if __name__ == "__main__":
     check_remaining_count(github)
     
     repo = github.get_repo(f"{REPO_OWNER}/{REPO_NAME}")
+    print(f"看看自定义剩余次数：{remaining_count}")
     remaining_count = remaining_count - 1
-
+    print(f"看看自定义剩余次数：{remaining_count}")
     if remaining_count <= 1:
         check_remaining_count(github)
     all_branches = list(repo.get_branches())
     remaining_count = remaining_count - 1
-
+    print(f"看看自定义剩余次数：{remaining_count}")
     for branch in all_branches:
         if branch.name.isdigit() and int(branch.name) > 618760:
             print(f"当前处理 {branch.name} 分支")
