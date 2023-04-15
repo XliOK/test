@@ -111,7 +111,7 @@ if __name__ == "__main__":
     remaining_count = remaining_count - 1
     print(f"看看自定义剩余次数：{remaining_count}")
     for branch in all_branches:
-        if branch.name.isdigit() and int(branch.name) > 618760:
+        if branch.name.isdigit() and int(branch.name) > 1870570:
             print(f"当前处理 {branch.name} 分支")
             fetch_data(repo, branch.name, github)
 
