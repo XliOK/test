@@ -67,7 +67,7 @@ jobs:
         from pathlib import Path
 
         # Setup Aliyun OSS
-        auth = oss2.Auth(os.environ['ALIYUN_ACCESS_KEY'], os.environ['ALIYUN_SECRET_KEY'])
+        auth = oss2.Auth(os.environ['ALIID'], os.environ['ALIKEY'])
         bucket = oss2.Bucket(auth, 'oss-cn-beijing.aliyuncs.com', 'zqb-client')
 
         # Upload the files to OSS
