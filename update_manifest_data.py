@@ -47,6 +47,14 @@ def upload_to_oss(branch, file_name, content):
     result = bucket.put_object(object_name, content)
     return result.status == 200
 
+def update_api(data):
+    api_url = "http://39.105.28.227:80/server/api/remote/setData"
+    headers = {
+        "Content-Type": "application/json"
+    }
+    response = requests.post(api_url, headers=headers, data=json.dumps(data))
+    return response.status_code
+
 def fetch_data(repo, branch, github):
     global remaining_count
     if remaining_count <= 1:
@@ -83,14 +91,6 @@ def fetch_data(repo, branch, github):
         else:
             print(f"Failed to upload {file_name} to OSS for branch {branch}.")
     """
-
-def update_api(data):
-    api_url = "http://39.105.28.227:80/server/api/remote/setData"
-    headers = {
-        "Content-Type": "application/json"
-    }
-    response = requests.post(api_url, headers=headers, data=json.dumps(data))
-    return response.status_code
 
 if __name__ == "__main__":
     github = Github(TOKEN)
