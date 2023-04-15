@@ -20,14 +20,15 @@ jobs:
       run: |
         branches=$(git branch -r | grep -oP '\d+' | jq -R . | jq -s .)
         chunks=$(echo $branches | jq -c '[(. | length / 20 | ceil) as $n | range(0; $n) as $i | .[($i*$n):($i*$n+$n)]] | add')
-        echo "::set-output name=matrix::{\"chunk\":$chunks}"
+        chunk_string=$(echo $chunks | jq -r 'join(";")')
+        echo "::set-output name=matrix::{\"chunk\":\"$chunk_string\"}"
 
   upload_to_oss:
     needs: fetch_branches
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        chunk: ${{fromJson(needs.fetch_branches.outputs.matrix).chunk}}
+        chunk: ${{split(needs.fetch_branches.outputs.matrix.chunk, ';')}}
     steps:
     - name: Checkout
       uses: actions/checkout@v2
