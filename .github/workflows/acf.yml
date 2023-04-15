@@ -1,0 +1,37 @@
+name: Run Python script and upload ACF files
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests vdf PyGithub
+
+    - name: Create required directories
+      run: |
+        mkdir -p debug/steamcmd/installed
+        mkdir -p debug/steamcmd/downloads
+
+    - name: Download and extract SteamCMD
+      run: |
+        curl -o debug/steamcmd/downloads/steamcmd_linux.tar.gz https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz
+        tar -xvf debug/steamcmd/downloads/steamcmd_linux.tar.gz -C debug/steamcmd/installed
+
+    - name: Run Python script
+      run: python acf.py
+      env:
+        KEY: ${{ secrets.KEY4 }}
