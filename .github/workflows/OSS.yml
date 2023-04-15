@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        chunk: ${{fromJson('[' + needs.fetch_branches.outputs.matrix.chunk + ']')}}
+        chunk: ${{fromJson('[' + needs.fetch_branches.outputs.matrix.chunk.replace(';', ',') + ']')}}
     steps:
     - name: Checkout
       uses: actions/checkout@v2
