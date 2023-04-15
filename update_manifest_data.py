@@ -83,7 +83,6 @@ def update_api(data):
 
 if __name__ == "__main__":
     github = Github(TOKEN)
-    global remaining_count
     check_remaining_count(github)
     
     repo = github.get_repo(f"{REPO_OWNER}/{REPO_NAME}")
