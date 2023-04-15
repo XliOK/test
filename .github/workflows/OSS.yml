@@ -73,4 +73,4 @@ jobs:
           for branch in $branches_to_upload; do
             git checkout $branch
             ossutil config --access-key-id $OSS_ACCESS_KEY_ID --access-key-secret $OSS_ACCESS_KEY_SECRET --endpoint oss-cn-beijing.aliyuncs.com --language EN
-            ossutil cp -r . oss://zqb-client
+            ossutil cp -r . oss://zqb-client/zqb/branches/$branch/ --exclude ".git
