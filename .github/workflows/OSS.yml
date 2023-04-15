@@ -1,9 +1,6 @@
 name: Upload to Aliyun OSS
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 jobs:
@@ -22,15 +19,15 @@ jobs:
       id: set-matrix
       run: |
         branches=$(git branch -r | grep -oP '\d+' | jq -R . | jq -s .)
-        chunks=$(echo $branches | jq -c '[(. | length / 20 | ceil) as $n | range(0; $n) as $i | .[($i*$n):($i*$n+$n)]]')
-        echo "::set-output name=matrix::{\"chunks\":$chunks}"
+        chunks=$(echo $branches | jq -c '[(. | length / 20 | ceil) as $n | range(0; $n) as $i | .[($i*$n):($i*$n+$n)]] | add')
+        echo "::set-output name=matrix::{\"chunk\":$chunks}"
 
   upload_to_oss:
     needs: fetch_branches
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        chunk: ${{fromJson(needs.fetch_branches.outputs.matrix).chunks}}
+        chunk: ${{fromJson(needs.fetch_branches.outputs.matrix).chunk}}
     steps:
     - name: Checkout
       uses: actions/checkout@v2
@@ -45,7 +42,7 @@ jobs:
         sudo mv ossutil64 /usr/local/bin/ossutil
 
     - name: Configure OSSUtil
-      run: ossutil config -e oss-cn-beijing.aliyuncs.com -i ${{ secrets.ALIID }} -k ${{ secrets.ALIKEY }} -L CH
+      run: ossutil config -e oss-cn-beijing.aliyuncs.com -i ${{ secrets.ALIYUN_ACCESS_KEY_ID }} -k ${{ secrets.ALIYUN_ACCESS_KEY_SECRET }} -L CH
 
     - name: Upload to OSS
       run: |
