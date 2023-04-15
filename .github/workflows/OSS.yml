@@ -1,53 +1,82 @@
 name: Upload to Aliyun OSS
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - '*'
 
 jobs:
-  fetch_branches:
+  prepare_jobs:
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      matrix: ${{ steps.set_matrix.outputs.matrix }}
     steps:
-    - name: Checkout
+    - name: Checkout repository
       uses: actions/checkout@v2
       with:
-        repository: xxTree/ManifestAutoUpdate
-        ref: main
-
-    - name: Set matrix for parallel jobs
-      id: set-matrix
-      run: |
-        branches=$(git branch -r | grep -oP '\d+' | jq -R . | jq -s .)
-        chunks=$(echo $branches | jq -c '[(. | length / 20 | ceil) as $n | range(0; $n) as $i | .[($i*$n):($i*$n+$n)]] | add')
-        chunk_string=$(echo $chunks | jq -r 'join(",")')
-        echo "::set-output name=matrix::$chunk_string"
-
-  upload_to_oss:
-    needs: fetch_branches
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        chunk: ${{split(needs.fetch_branches.outputs.matrix, ',')}}
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-      with:
-        repository: xxTree/ManifestAutoUpdate
         fetch-depth: 0
 
-    - name: Setup OSSUtil
-      run: |
-        curl -O https://gosspublic.alicdn.com/ossutil/1.7.7/ossutil64
-        chmod 755 ossutil64
-        sudo mv ossutil64 /usr/local/bin/ossutil
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
 
-    - name: Configure OSSUtil
-      run: ossutil config -e oss-cn-beijing.aliyuncs.com -i ${{ secrets.ALIID }} -k ${{ secrets.ALIKEY }} -L CH
-
-    - name: Upload to OSS
+    - name: Get branches
+      id: set_matrix
       run: |
-        for branch in $(echo '${{matrix.chunk}}' | jq -r '.[]'); do
-          git checkout $branch
-          ossutil cp -rf . oss://zqb-client/zqb/branches/$branch --exclude ".git/*"
-        done
+        import json
+        from subprocess import check_output
+
+        branches = check_output(['git', 'branch', '-a']).decode('utf-8').split('\n')
+        numeric_branches = []
+
+        for branch in branches:
+          branch = branch.replace('*', '').strip()
+          if not branch.startswith('remotes/origin/'):
+            continue
+          branch = branch.replace('remotes/origin/', '')
+          if branch.isnumeric():
+            numeric_branches.append(branch)
+
+        print(f'::set-output name=matrix::{json.dumps({"branch": numeric_branches})}')
+
+  upload_to_oss:
+    needs: prepare_jobs
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{fromJson(needs.prepare_jobs.outputs.matrix)}}
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      with:
+        ref: ${{ matrix.branch }}
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install oss2
+
+    - name: Upload files to OSS
+      run: |
+        import os
+        import oss2
+        from pathlib import Path
+
+        # Setup Aliyun OSS
+        auth = oss2.Auth(os.environ['ALIYUN_ACCESS_KEY'], os.environ['ALIYUN_SECRET_KEY'])
+        bucket = oss2.Bucket(auth, 'oss-cn-beijing.aliyuncs.com', 'zqb-client')
+
+        # Upload the files to OSS
+        for root, dirs, files in os.walk('.'):
+          for file in files:
+            filepath = os.path.join(root, file)
+            relative_path = Path(filepath).relative_to('.')
+            oss_path = f'zqb/branches/195270/${{ matrix.branch }}/{relative_path}'
+            bucket.put_object_from_file(oss_path, filepath)
+            print(f'Uploaded {filepath} to {oss_path}')
