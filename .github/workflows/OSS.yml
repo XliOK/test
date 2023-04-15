@@ -1,9 +1,7 @@
 name: Upload to Aliyun OSS
 
 on:
-  push:
-    branches:
-      - '*'
+  workflow_dispatch:
 
 jobs:
   prepare_jobs:
