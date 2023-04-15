@@ -33,11 +33,11 @@ def check_remaining_count(github):
     if remaining <= 10:
         wait_time = reset_time_datetime - datetime.now()
         wait_seconds = wait_time.total_seconds()
-        print(f"暂停程序 {wait_seconds} 秒，直到 {reset_time_datetime}。")
+        print(f"暂停程序 {wait_seconds} 秒,直到 {reset_time_datetime}。现在的时间是 {datetime.now()}")
         time.sleep(wait_seconds + 10)
     else:
         print(f"剩余请求次数: {remaining}")
-        print(f"限制将在 {reset_time_datetime} 重置，现在的时间是 {datetime.now()}")
+        print(f"限制将在 {reset_time_datetime} 重置,现在的时间是 {datetime.now()}")
         remaining_count = remaining
 
 def upload_to_oss(branch, file_name, content):
