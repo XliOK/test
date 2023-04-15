@@ -44,7 +44,7 @@ jobs:
         sudo mv ossutil64 /usr/local/bin/ossutil
 
     - name: Configure OSSUtil
-      run: ossutil config -e oss-cn-beijing.aliyuncs.com -i ${{ secrets.ALIYUN_ACCESS_KEY_ID }} -k ${{ secrets.ALIYUN_ACCESS_KEY_SECRET }} -L CH
+      run: ossutil config -e oss-cn-beijing.aliyuncs.com -i ${{ secrets.ALIID }} -k ${{ secrets.ALIKEY }} -L CH
 
     - name: Upload to OSS
       run: |
