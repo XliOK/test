@@ -65,13 +65,24 @@ def fetch_data(repo, branch, github):
         file_name = item.path.split("/")[-1]
         #files_data.append({"name": file_name, "content": file_content})
         files_data.append(file_name)
+        
+    status_code = update_api({"branch": branch,"sha": commit_sha,"paths": files_data})
+    if status_code == 200:
+            print(f"API updated successfully for branch {branch}.")
+        else:
+            print(f"Failed to update API for branch {branch} with status code: {status_code}")
+    """
+    for data in files_data:
+        file_name = data["name"]
+        content = data["content"]
 
-    return {
-        "branch": branch,
-        "sha": commit_sha,
-        "paths": files_data
-    }
+        uploaded = upload_to_oss(branch, file_name, content)
 
+        if uploaded:
+            print(f"Uploaded {file_name} to OSS for branch {branch}.")
+        else:
+            print(f"Failed to upload {file_name} to OSS for branch {branch}.")
+    """
 
 def update_api(data):
     api_url = "http://39.105.28.227:80/server/api/remote/setData"
@@ -88,7 +99,6 @@ if __name__ == "__main__":
     repo = github.get_repo(f"{REPO_OWNER}/{REPO_NAME}")
     remaining_count = remaining_count - 1
 
-    numeric_branches_data = []
     if remaining_count <= 1:
         check_remaining_count(github)
     all_branches = list(repo.get_branches())
@@ -97,27 +107,6 @@ if __name__ == "__main__":
     for branch in all_branches:
         if branch.name.isdigit() and int(branch.name) > 0:
             print(f"当前处理 {branch.name} 分支")
-            branch_data = fetch_data(repo, branch.name, github)
-            numeric_branches_data.append(branch_data)
-
-    for branch_data in numeric_branches_data:
-        branch = branch_data["branch"]
-        status_code = update_api(branch_data)
-        if status_code == 200:
-            print(f"API updated successfully for branch {branch}.")
-        else:
-            print(f"Failed to update API for branch {branch} with status code: {status_code}")
-        """
-        for file_data in branch_data["paths"]:
-            file_name = file_data["name"]
-            content = file_data["content"]
-
-            uploaded = upload_to_oss(branch, file_name, content)
-
-            if uploaded:
-                print(f"Uploaded {file_name} to OSS for branch {branch}.")
-            else:
-                print(f"Failed to upload {file_name} to OSS for branch {branch}.")
-        """
+            fetch_data(repo, branch.name, github)
 
 
