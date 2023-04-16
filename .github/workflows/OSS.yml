@@ -4,127 +4,43 @@ on:
   workflow_dispatch:
 
 jobs:
-  prepare_jobs:
-    runs-on: ubuntu-latest
-    outputs:
-      matrices: ${{ steps.set_matrix.outputs.matrices }}
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.x'
-
-    - name: Get branches
-      id: set_matrix
-      run: |
-        import json
-        from subprocess import check_output
-
-        branches = check_output(['git', 'branch', '-a']).decode('utf-8').split('\n')
-        numeric_branches = []
-
-        for branch in branches:
-          branch = branch.replace('*', '').strip()
-          if not branch.startswith('remotes/origin/'):
-            continue
-          branch = branch.replace('remotes/origin/', '')
-          if branch.isnumeric():
-            numeric_branches.append(branch)
-
-        # Split branches into 20 sublists
-        chunk_size = (len(numeric_branches) + 19) // 20
-        chunks = [numeric_branches[i:i + chunk_size] for i in range(0, len(numeric_branches), chunk_size)]
-
-        print(f'::set-output name=matrices::{json.dumps(chunks)}')
-
-  upload_to_oss:
-    runs-on: ubuntu-latest
-    needs: prepare_jobs
+  upload-to-oss:
     strategy:
       matrix:
-        include:
-          - index: 0
-            branches: ${{ needs.prepare_jobs.outputs.matrices[0] }}
-          - index: 1
-            branches: ${{ needs.prepare_jobs.outputs.matrices[1] }}
-          - index: 2
-            branches: ${{ needs.prepare_jobs.outputs.matrices[2] }}
-          - index: 3
-            branches: ${{ needs.prepare_jobs.outputs.matrices[3] }}
-          - index: 4
-            branches: ${{ needs.prepare_jobs.outputs.matrices[4] }}
-          - index: 5
-            branches: ${{ needs.prepare_jobs.outputs.matrices[5] }}
-          - index: 6
-            branches: ${{ needs.prepare_jobs.outputs.matrices[6] }}
-          - index: 7
-            branches: ${{ needs.prepare_jobs.outputs.matrices[7] }}
-          - index: 8
-            branches: ${{ needs.prepare_jobs.outputs.matrices[8] }}
-          - index: 9
-            branches: ${{ needs.prepare_jobs.outputs.matrices[9] }}
-          - index: 10
-            branches: ${{ needs.prepare_jobs.outputs.matrices[10] }}
-          - index: 11
-            branches: ${{ needs.prepare_jobs.outputs.matrices[11] }}
-          - index: 12
-            branches: ${{ needs.prepare_jobs.outputs.matrices[12] }}
-          - index: 13
-            branches: ${{ needs.prepare_jobs.outputs.matrices[13] }}
-          - index: 14
-            branches: ${{ needs.prepare_jobs.outputs.matrices[14] }}
-          - index: 15
-            branches: ${{ needs.prepare_jobs.outputs.matrices[15] }}
-          - index: 16
-            branches: ${{ needs.prepare_jobs.outputs.matrices[16] }}
-          - index: 17
-            branches: ${{ needs.prepare_jobs.outputs.matrices[17] }}
-          - index: 18
-            branches: ${{ needs.prepare_jobs.outputs.matrices[18] }}
-          - index: 19
-            branches: ${{ needs.prepare_jobs.outputs.matrices[19] }}
+        num_jobs: 20
+        job_index: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+    runs-on: ubuntu-latest
     steps:
-    - name: Checkout repository
+    - name: Checkout target repository
       uses: actions/checkout@v2
       with:
+        repository: xxTree/ManifestAutoUpdate
         fetch-depth: 0
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.x'
-
-    - name: Install dependencies
+    - name: Setup ossutil
       run: |
-        python -m pip install --upgrade pip
-        pip install oss2
+        wget https://gosspublic.alicdn.com/ossutil/1.7.7/ossutil64
+        chmod +x ossutil64
+        sudo mv ossutil64 /usr/local/bin/ossutil
 
-    - name: Upload files to OSS
+    - name: Upload to Aliyun OSS
       run: |
-        import os
-        import oss2
-        from pathlib import Path
+        ossutil config -e oss-cn-beijing.aliyuncs.com -i ${{ secrets.ALIID }} -k ${{ secrets.ALIKEY }}
+        
+        branches=($(git branch -a | grep -E 'remotes/origin/[0-9]+$' | sed 's/remotes\/origin\///'))
+        total_branches=${#branches[@]}
+        branches_per_job=$(( (total_branches + num_jobs - 1) / num_jobs ))
+        start_index=$(( job_index * branches_per_job ))
+        end_index=$(( start_index + branches_per_job - 1 ))
 
-        branches = ${{ matrix.branches }}
-
-        # Setup Aliyun OSS
-        auth = oss2.Auth(os.environ['ALIID'], os.environ['ALIKEY'])
-        bucket = oss2.Bucket(auth, 'oss-cn-beijing.aliyuncs.com', 'zqb-client')
-
-        for branch in branches:
-          # Checkout the specific branch
-          os.system(f'git checkout {branch}')
-
-          # Upload the files to OSS
-          for root, dirs, files in os.walk('.'):
-            for file in files:
-            filepath = os.path.join(root, file)
-            relative_path = Path(filepath).relative_to('.')
-            oss_path = f'zqb/branches/195270/{branch}/{relative_path}'
-            bucket.put_object_from_file(oss_path, filepath)
-            print(f'Uploaded {filepath} to {oss_path}')
+        for i in $(seq $start_index $end_index); do
+          if [ $i -lt $total_branches ]; then
+            branch=${branches[$i]}
+            git checkout $branch
+            ossutil cp -r ./ oss://zqb-client/zqb/branches/195270/$branch -f
+            echo "Uploaded branch $branch to Aliyun OSS: zqb/branches/195270/$branch"
+          fi
+        done
+      env:
+        num_jobs: ${{ matrix.num_jobs }}
+        job_index: ${{ matrix.job_index }}
