@@ -34,7 +34,7 @@ jobs:
         for branch in "${branches[@]}"; do
           if (( (branch % 20) + 1 == group )); then
             if git cat-file -e origin/$branch^{commit}; then
-              git --git-dir=.git --work-tree=temp_clone checkout $branch -- .
+              git --git-dir=.git --work-tree=temp_clone checkout origin/$branch -- .
               cd temp_clone
               rm -rf .git
               ossutil cp -r ./ oss://zqb-client/zqb/branches/195270/$branch -f
