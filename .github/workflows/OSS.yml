@@ -1,4 +1,4 @@
-name: Upload to Aliyun OSS1
+name: Upload to Aliyun OSS
 
 on:
   workflow_dispatch:
@@ -35,7 +35,8 @@ jobs:
           done
         done
 
-        for branch in ${grouped_branches[$((${matrix.group} - 1))]}; do
+        index=$((${matrix.group} - 1))
+        for branch in ${grouped_branches[$index]}; do
           git checkout $branch
           ossutil cp -r --exclude ".git/*" ./ oss://zqb-client/zqb/branches/195270/$branch -f
           echo "Uploaded branch $branch to Aliyun OSS: zqb/branches/195270/$branch"
