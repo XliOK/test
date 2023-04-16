@@ -27,7 +27,7 @@ def check_remaining_count(github):
     reset_time_timestamp = reset_time.timestamp()
     reset_time_datetime = datetime.fromtimestamp(reset_time_timestamp)
 
-    if remaining <= 10:
+    if remaining <= 1:
         wait_time = reset_time_datetime - datetime.now()
         wait_seconds = wait_time.total_seconds()
         print(f"暂停程序 {wait_seconds} 秒,直到 {reset_time_datetime}。现在的时间是 {datetime.now()}")
