@@ -27,25 +27,18 @@ jobs:
         ossutil config -e oss-cn-beijing.aliyuncs.com -i ${{ secrets.ALIID }} -k ${{ secrets.ALIKEY }}
         
         branches=($(git branch -a | grep -E 'remotes/origin/[0-9]+$' | sed 's/remotes\/origin\///'))
-        total_branches=${#branches[@]}
-        branches_per_group=$(( (total_branches + 19) / 20 ))
-
-        mkdir temp_clone
-        for branch in "${branches[@]}"; do
-          if (( (branch % 20) + 1 == group )); then
-            if git cat-file -e origin/$branch^{commit}; then
-              git --git-dir=.git --work-tree=temp_clone checkout origin/$branch -- .
-              cd temp_clone
-              rm -rf .git
-              ossutil cp -r ./ oss://zqb-client/zqb/branches/195270/$branch -f
-              echo "Uploaded branch $branch to Aliyun OSS: zqb/branches/195270/$branch"
-              cd ..
-              rm -rf temp_clone/*
-            else
-              echo "Branch $branch does not reference a valid commit, skipping."
-            fi
-          fi
+        sorted_branches=($(for branch in "${branches[@]}"; do echo "$branch"; done | sort -n))
+        grouped_branches=()
+        for ((i=0; i<20; i++)); do
+          for ((j=i; j<${#sorted_branches[@]}; j+=20)); do
+            grouped_branches[$i]+="${sorted_branches[$j]} "
+          done
         done
-        rm -rf temp_clone
+
+        for branch in ${grouped_branches[$((${matrix.group} - 1))]}; do
+          git checkout $branch
+          ossutil cp -r --exclude ".git/*" ./ oss://zqb-client/zqb/branches/195270/$branch -f
+          echo "Uploaded branch $branch to Aliyun OSS: zqb/branches/195270/$branch"
+        done
       env:
         group: ${{ matrix.group }}
