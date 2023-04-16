@@ -1,4 +1,4 @@
-name: Upload to Aliyun OSS
+name: Upload to Aliyun OSS1
 
 on:
   workflow_dispatch:
