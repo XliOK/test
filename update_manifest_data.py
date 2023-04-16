@@ -99,7 +99,8 @@ def fetch_data(repo, branch, github):
 
 if __name__ == "__main__":
     github = Github(TOKEN)
-    check_remaining_count(github)
+    while 1:
+        check_remaining_count(github)
     '''
     repo = github.get_repo(f"{REPO_OWNER}/{REPO_NAME}")
     print(f"看看自定义剩余次数：{remaining_count}")
