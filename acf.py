@@ -15,8 +15,6 @@ from typing import Dict, Any, List, Tuple
 from github import Github
 from datetime import datetime
 
-remaining_count = 0
-
 APP_ROOT_PATH = Path(os.path.abspath(os.getcwd()))
 APP_STEAM_APPS_ROOT_PATH = APP_ROOT_PATH / 'steamapps'
 APP_STEAM_CMD_DOWNLOADS_ROOT_PATH = APP_ROOT_PATH / 'steamcmd' / 'downloads'
@@ -224,29 +222,24 @@ class SteamCMD:
             print(f"获取游戏ID {app_id} 的数据时出现错误: {e}")
             
 def check_remaining_count(github):
-    global remaining_count
     rate_limit = github.get_rate_limit()
     remaining = rate_limit.core.remaining
     reset_time = rate_limit.core.reset
     reset_time_timestamp = reset_time.timestamp()
     reset_time_datetime = datetime.fromtimestamp(reset_time_timestamp)
 
-    if remaining <= 10:
+    if remaining <= 1:
         wait_time = reset_time_datetime - datetime.now()
         wait_seconds = wait_time.total_seconds()
-        print(f"暂停程序 {wait_seconds} 秒，直到 {reset_time_datetime}。")
+        print(f"暂停程序 {wait_seconds} 秒,直到 {reset_time_datetime}。现在时间是{datetime.now()}")
         time.sleep(wait_seconds + 10)
     else:
         print(f"剩余请求次数: {remaining}")
-        print(f"限制将在 {reset_time_datetime} 重置")
-        remaining_count = remaining
+        print(f"限制将在 {reset_time_datetime} 重置,现在时间是{datetime.now()}")
 
 def get_all_numeric_branches(github, repo_name):
-    global remaining_count
-    if remaining_count <= 1:
-        check_remaining_count(github)
+    check_remaining_count(github)
     repo = github.get_repo(repo_name)
-    remaining_count = remaining_count - 1
     numeric_branches = []
     all_branches = repo.get_branches()
     for branch in all_branches:
@@ -256,20 +249,15 @@ def get_all_numeric_branches(github, repo_name):
     return numeric_branches
 
 def upload_acf_to_repo(github, repo_name, branch, acf_file_name):
-    global remaining_count
-    if remaining_count <= 1:
-        check_remaining_count(github)
+    check_remaining_count(github)
     repo = github.get_repo(repo_name)
-    remaining_count = remaining_count - 1
     with open(acf_file_name, 'rb') as file:
         content = file.read()
 
     file_exists = False
     try:
-        if remaining_count <= 1:
-            check_remaining_count(github)
+        check_remaining_count(github)
         file_obj = repo.get_contents(acf_file_name, ref=branch)
-        remaining_count = remaining_count - 1
         file_exists = True
     except:
         pass
@@ -277,15 +265,11 @@ def upload_acf_to_repo(github, repo_name, branch, acf_file_name):
     if not file_exists or (file_exists and file_obj.decoded_content != content):
         commit_message = f"Update {acf_file_name}"
         if file_exists:
-            if remaining_count <= 1:
-                check_remaining_count(github)
+            check_remaining_count(github)
             repo.update_file(acf_file_name, commit_message, content, file_obj.sha, branch=branch)
-            remaining_count = remaining_count - 1
         else:
-            if remaining_count <= 1:
-                check_remaining_count(github)
+            check_remaining_count(github)
             repo.create_file(acf_file_name, commit_message, content, branch=branch)
-            remaining_count = remaining_count - 1
         print(f"{acf_file_name} has been uploaded to branch {branch}.")
     else:
         print(f"{acf_file_name} has not changed, skipping upload.")
