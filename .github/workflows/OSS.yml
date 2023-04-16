@@ -33,7 +33,9 @@ jobs:
         for branch in "${branches[@]}"; do
           if (( (branch % 20) + 1 == group )); then
             git checkout $branch
-            ossutil cp -r --exclude ".git/*" ./ oss://zqb-client/zqb/branches/195270/$branch -f
+            find . -type f ! -path "./.git/*" -print0 | while read -r -d $'\0' file; do
+              ossutil cp "$file" "oss://zqb-client/zqb/branches/195270/$branch/$(basename "$file")" -f
+            done
             echo "Uploaded branch $branch to Aliyun OSS: zqb/branches/195270/$branch"
           fi
         done
