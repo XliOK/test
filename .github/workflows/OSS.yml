@@ -44,7 +44,7 @@ jobs:
               cd temp_clone
               rm -rf .git
               rm -rf ossutil_output
-              ossutil cp -r ./ oss://zqb-client/zqb/branches/195270/$branch -f
+              ossutil cp -r ./ oss://zqb-client/zqb/branches/1952700/$branch -f
               echo "Uploaded branch $branch to Aliyun OSS: zqb/branches/195270/$branch"
               cd ..
               rm -rf temp_clone/*
