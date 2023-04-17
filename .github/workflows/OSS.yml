@@ -36,6 +36,7 @@ jobs:
 
     - name: Upload to Aliyun OSS
       run: |
+        mv .ossutilconfig /home/runner/.ossutilconfig
         branches=($(git branch -a | grep -E 'remotes/origin/[0-9]+$' | sed 's/remotes\/origin\///'))
         total_branches=${#branches[@]}
         branches_per_group=$(( (total_branches + 19) / 20 ))
@@ -53,7 +54,7 @@ jobs:
               git --git-dir=.git --work-tree=temp_clone checkout origin/$branch -- .
               cd temp_clone
               rm -rf .git
-              ossutil cp -r ./ oss://zqb-client/zqb/branches/195270/$branch -f --config-file .ossutilconfig
+              ossutil cp -r ./ oss://zqb-client/zqb/branches/195270/$branch -f --config-file /home/runner/.ossutilconfig
               echo "Uploaded branch $branch to Aliyun OSS: zqb/branches/195270/$branch"
               cd ..
               rm -rf temp_clone/*
