@@ -43,7 +43,8 @@ jobs:
               git --git-dir=.git --work-tree=temp_clone checkout origin/$branch -- .
               cd temp_clone
               rm -rf .git
-              ossutil cp -r --exclude "*ossutil_output/*" ./ oss://zqb-client/zqb/branches/195270/$branch -f
+              rm -rf ossutil_output
+              ossutil cp -r ./ oss://zqb-client/zqb/branches/195270/$branch -f
               echo "Uploaded branch $branch to Aliyun OSS: zqb/branches/195270/$branch"
               cd ..
               rm -rf temp_clone/*
