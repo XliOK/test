@@ -22,10 +22,20 @@ jobs:
         chmod +x ossutil64
         sudo mv ossutil64 /usr/local/bin/ossutil
 
+    - name: Create ossutil config file
+      run: |
+        echo '[Credentials]' > .ossutilconfig
+        echo 'language=CH' >> .ossutilconfig
+        echo "accessKeyID=${{ secrets.ALIID }}" >> .ossutilconfig
+        echo "accessKeySecret=${{ secrets.ALIKEY }}" >> .ossutilconfig
+        echo "endpoint=oss-cn-beijing.aliyuncs.com" >> .ossutilconfig
+        echo '[Bucket-Endpoint]' >> .ossutilconfig
+        echo 'zqb-client=oss-cn-beijing.aliyuncs.com' >> .ossutilconfig
+        echo '[Exclude]' >> .ossutilconfig
+        echo 'include=*/ossutil_output/*' >> .ossutilconfig
+
     - name: Upload to Aliyun OSS
       run: |
-        ossutil config -e oss-cn-beijing.aliyuncs.com -i ${{ secrets.ALIID }} -k ${{ secrets.ALIKEY }}
-        
         branches=($(git branch -a | grep -E 'remotes/origin/[0-9]+$' | sed 's/remotes\/origin\///'))
         total_branches=${#branches[@]}
         branches_per_group=$(( (total_branches + 19) / 20 ))
