@@ -243,7 +243,7 @@ def get_all_numeric_branches(github, repo_name):
     numeric_branches = []
     all_branches = repo.get_branches()
     for branch in all_branches:
-        if branch.name.isdigit() and int(branch.name) > 0:
+        if branch.name.isdigit() and int(branch.name) > 828660:
             numeric_branches.append(branch.name)
 
     return numeric_branches
