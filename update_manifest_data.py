@@ -6,6 +6,7 @@ from github import Github
 import base64
 import time
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor
 
 REPO_OWNER = "xxTree"
 REPO_NAME = "ManifestAutoUpdate"
@@ -70,7 +71,7 @@ def fetch_data(repo, branch, github):
         print(f"API updated successfully for branch {branch}.")
     else:
         print(f"Failed to update API for branch {branch} with status code: {status_code}")
-    """
+    
     for data in files_data:
         file_name = data["name"]
         content = data["content"]
@@ -81,16 +82,30 @@ def fetch_data(repo, branch, github):
             print(f"Uploaded {file_name} to OSS for branch {branch}.")
         else:
             print(f"Failed to upload {file_name} to OSS for branch {branch}.")
-    """
+    
 
+def process_branch(branch_obj, repo, github):
+    branch_name = branch_obj.name
+    if branch_name.isdigit() and int(branch_name) > 0:
+        print(f"当前处理 {branch_name} 分支")
+        fetch_data(repo, branch_name, github)
+    
 if __name__ == "__main__":
     github = Github(TOKEN)
     check_remaining_count(github)
     repo = github.get_repo(f"{REPO_OWNER}/{REPO_NAME}")
     check_remaining_count(github)
     all_branches = list(repo.get_branches())
-    for branch in all_branches:
-        if branch.name.isdigit() and int(branch.name) > 0:
-            print(f"当前处理 {branch.name} 分支")
-            fetch_data(repo, branch.name, github)
+
+    # 设置最大线程数，根据您的实际情况进行调整
+    max_threads = 4
+
+    # 使用 ThreadPoolExecutor 并行处理分支
+    with ThreadPoolExecutor(max_workers=max_threads) as executor:
+        futures = [executor.submit(process_branch, branch, repo, github) for branch in all_branches]
+
+    # 等待所有线程完成
+    for future in futures:
+        future.result()
+
 
