@@ -34,4 +34,4 @@ jobs:
     - name: Run Python script
       run: python acf.py
       env:
-        KEY: ${{ secrets.KEY4 }}
+        KEY: ${{ secrets.TOKEN }}
