@@ -26,6 +26,6 @@ jobs:
     - name: Fetch data and update API
       run: python update_manifest_data.py
       env:
-        KEY: ${{ secrets.KEY }}
+        KEY: ${{ secrets.TOKEN }}
         OSS_ACCESS_KEY_ID: ${{ secrets.ALIID }}
         OSS_ACCESS_KEY_SECRET: ${{ secrets.ALIKEY }}
