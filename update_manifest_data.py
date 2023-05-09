@@ -65,7 +65,7 @@ def fetch_data(repo, branch, github):
         #files_data.append({"name": file_name, "content": file_content})
         files_data.append(file_name)
         
-    status_code = update_api({"branch": branch,"sha": commit_sha,"paths": files_data})
+    status_code = update_api({"branch": branch + "_t","sha": commit_sha,"paths": files_data})
     if status_code == 200:
         print(f"API updated successfully for branch {branch}.")
     else:
