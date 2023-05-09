@@ -14,6 +14,7 @@ from urllib.request import urlretrieve
 from typing import Dict, Any, List, Tuple
 from github import Github
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 APP_ROOT_PATH = Path(os.path.abspath(os.getcwd()))
 APP_STEAM_APPS_ROOT_PATH = APP_ROOT_PATH / 'steamapps'
@@ -243,7 +244,7 @@ def get_all_numeric_branches(github, repo_name):
     numeric_branches = []
     all_branches = repo.get_branches()
     for branch in all_branches:
-        if branch.name.isdigit() and int(branch.name) > 828660:
+        if branch.name.isdigit() and int(branch.name) > 0:
             numeric_branches.append(branch.name)
 
     return numeric_branches
@@ -283,7 +284,11 @@ def execute_github_operations(github, repo_name, app_id, numeric_branches):
             print(f"文件 {acf_file_name} 不存在，跳过上传.")
     else:
         print(f"应用ID {app_id} 的分支不存在。")
-
+        
+def process_app_id(app_id: str, github, repo_name: str, numeric_branches: List[str]):
+    steamcmd.app_info(app_id)
+    execute_github_operations(github, repo_name, app_id, numeric_branches)
+    
 
 if __name__ == "__main__":
     GITHUB_TOKEN = os.environ["KEY"] 
@@ -293,8 +298,14 @@ if __name__ == "__main__":
     check_remaining_count(github)
     numeric_branches = get_all_numeric_branches(github, REPO_NAME)
 
-    for branch in numeric_branches:
-        app_id = branch
-        steamcmd.app_info(app_id)
+    max_threads = 4  # 设置线程池的最大线程数
 
-        execute_github_operations(github, REPO_NAME, app_id, numeric_branches)
+    with ThreadPoolExecutor(max_threads) as executor:
+        futures = [executor.submit(process_app_id, branch, github, REPO_NAME, numeric_branches) for branch in numeric_branches]
+
+        for future in as_completed(futures):
+            try:
+                future.result()
+            except Exception as e:
+                print(f"处理 app_id 时出现错误: {e}")
+
