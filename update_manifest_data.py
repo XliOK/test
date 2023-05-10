@@ -61,10 +61,10 @@ def fetch_data(repo, branch, github):
 
     files_data = []
     for item in contents:
-        #file_content = base64.b64decode(item.content)
+        file_content = base64.b64decode(item.content)
         file_name = item.path.split("/")[-1]
-        #files_data.append({"name": file_name, "content": file_content})
-        files_data.append(file_name)
+        files_data.append({"name": file_name, "content": file_content})
+        #files_data.append(file_name)
         
     status_code = update_api({"branch": branch + "_t","sha": commit_sha,"paths": files_data})
     if status_code == 200:
