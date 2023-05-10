@@ -63,7 +63,8 @@ def fetch_data(repo, branch, github):
     for item in contents:
         file_content = base64.b64decode(item.content)
         file_name = item.path.split("/")[-1]
-        files_data.append({"name": file_name, "content": file_content})
+        file_content_base64 = base64.b64encode(file_content).decode("utf-8")
+        files_data.append({"name": file_name, "content": file_content_base64})
         #files_data.append(file_name)
         
     status_code = update_api({"branch": branch + "_t","sha": commit_sha,"paths": files_data})
@@ -74,7 +75,8 @@ def fetch_data(repo, branch, github):
     
     for data in files_data:
         file_name = data["name"]
-        content = data["content"]
+        content_base64 = data["content"]
+        content = base64.b64decode(content_base64)
 
         uploaded = upload_to_oss(branch, file_name, content)
 
