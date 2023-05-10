@@ -57,6 +57,8 @@ class SteamCMD:
             self.download_file(self.download_link, str(cmp_file_path))
             print(f"Decompress zip to {APP_STEAM_CMD_INSTALLED_ROOT_PATH}...")
             self.decompress(str(cmp_file_path), str(APP_STEAM_CMD_INSTALLED_ROOT_PATH))
+            os.chmod(str(APP_STEAM_CMD_INSTALLED_ROOT_PATH), 0o755)  # Add this line
+            os.chmod(str(APP_STEAM_CMD_EXE_FILE_PATH), 0o755)
 
 
     def parse_stdout(self, stdout: str) -> Dict[str, Any]:
