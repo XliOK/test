@@ -103,7 +103,7 @@ class SteamCMD:
                 depot_name = depot_data.get("name")
                 depot_size = depot_data.get("maxsize", 0)
                 depot_manifest_id = depot_data.get("manifests", {}).get("public")
-                depot_os = depot_data.get("config", {}).get("oslist")
+                depot_os = depot_data.get("config", {}).get("oslist") if "config" in depot_data else None
                 depot_is_dlc = depot_data.get("dlcappid")
                 depot_is_shared_install = depot_data.get("sharedinstall")
 
