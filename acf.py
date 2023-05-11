@@ -15,12 +15,16 @@ from typing import Dict, Any, List, Tuple
 from github import Github
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from threading import Semaphore
 
 APP_ROOT_PATH = Path(os.path.abspath(os.getcwd()))
 APP_STEAM_APPS_ROOT_PATH = APP_ROOT_PATH / 'steamapps'
 APP_STEAM_CMD_DOWNLOADS_ROOT_PATH = APP_ROOT_PATH / 'steamcmd' / 'downloads'
 APP_STEAM_CMD_INSTALLED_ROOT_PATH = APP_ROOT_PATH / 'steamcmd'
 APP_STEAM_CMD_EXE_FILE_PATH = APP_STEAM_CMD_INSTALLED_ROOT_PATH / 'steamcmd.sh'
+
+max_threads = 10
+semaphore = Semaphore(max_threads)
 
 class SteamCMD:
 
@@ -310,10 +314,10 @@ def execute_github_operations(github, repo_name, app_id, numeric_branches):
         print(f"应用ID {app_id} 的分支不存在。")
         
 def process_app_id(app_id: str, github, repo_name: str, numeric_branches: List[str]):
-    steamcmd.app_info(app_id)
-    execute_github_operations(github, repo_name, app_id, numeric_branches)
+    with semaphore:
+        steamcmd.app_info(app_id)
+        execute_github_operations(github, repo_name, app_id, numeric_branches)
     
-
 if __name__ == "__main__":
     GITHUB_TOKEN = os.environ["KEY"] 
     REPO_NAME = "xxTree/ManifestAutoUpdate"  
@@ -321,8 +325,6 @@ if __name__ == "__main__":
     github = Github(GITHUB_TOKEN)
     check_remaining_count(github)
     numeric_branches = get_all_numeric_branches(github, REPO_NAME)
-
-    max_threads = 1  # 设置线程池的最大线程数
 
     with ThreadPoolExecutor(max_threads) as executor:
         futures = [executor.submit(process_app_id, branch, github, REPO_NAME, numeric_branches) for branch in numeric_branches]
