@@ -211,7 +211,7 @@ class SteamCMD:
                     raise ValueError(f"The appId \"{app_id}\" is invalid!")
 
             # DOWNLOAD CMD
-            self.download_cmd()
+            #self.download_cmd()
 
             # CLEANUP
             print('Remove junk and cache from SteamCMD...')
