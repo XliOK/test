@@ -7,6 +7,7 @@ import vdf
 import shutil
 import tarfile
 import time
+import threading
 
 from io import BytesIO
 from pathlib import Path
@@ -16,6 +17,7 @@ from github import Github
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Semaphore
+
 
 APP_ROOT_PATH = Path(os.path.abspath(os.getcwd()))
 APP_STEAM_APPS_ROOT_PATH = APP_ROOT_PATH / 'steamapps'
