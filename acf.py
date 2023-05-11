@@ -317,11 +317,16 @@ def process_app_id(app_id: str, github, repo_name: str, numeric_branches: List[s
     with semaphore:
         steamcmd.app_info(app_id)
         execute_github_operations(github, repo_name, app_id, numeric_branches)
+        
+def prepare_steamcmd(steamcmd):
+    print("Preparing SteamCMD...")
+    steamcmd.download_cmd()
     
 if __name__ == "__main__":
     GITHUB_TOKEN = os.environ["KEY"] 
     REPO_NAME = "xxTree/ManifestAutoUpdate"  
     steamcmd = SteamCMD()
+    prepare_steamcmd(steamcmd)
     github = Github(GITHUB_TOKEN)
     check_remaining_count(github)
     numeric_branches = get_all_numeric_branches(github, REPO_NAME)
