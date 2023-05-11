@@ -30,6 +30,7 @@ class SteamCMD:
 
     def __init__(self):
         self.download_link = 'https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz'
+        self.lock = threading.Lock()
 
     @staticmethod
     def is_numeric(string: str) -> bool:
@@ -245,10 +246,11 @@ class SteamCMD:
             print('You have not entered any appId!')
 
     def app_info(self, app_id: str):
-        try:
-            self.apps_info([app_id])
-        except Exception as e:
-            print(f"获取游戏ID {app_id} 的数据时出现错误: {e}")
+        with self.lock:
+            try:
+                self.apps_info([app_id])
+            except Exception as e:
+                print(f"获取游戏ID {app_id} 的数据时出现错误: {e}")
             
 def check_remaining_count(github):
     rate_limit = github.get_rate_limit()
