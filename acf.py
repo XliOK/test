@@ -268,7 +268,7 @@ def get_all_numeric_branches(github, repo_name):
     numeric_branches = []
     all_branches = repo.get_branches()
     for branch in all_branches:
-        if branch.name.isdigit() and int(branch.name) > 0:
+        if branch.name.isdigit() and int(branch.name) < 1000:
             numeric_branches.append(branch.name)
 
     return numeric_branches
@@ -322,7 +322,7 @@ if __name__ == "__main__":
     check_remaining_count(github)
     numeric_branches = get_all_numeric_branches(github, REPO_NAME)
 
-    max_threads = 10  # 设置线程池的最大线程数
+    max_threads = 1  # 设置线程池的最大线程数
 
     with ThreadPoolExecutor(max_threads) as executor:
         futures = [executor.submit(process_app_id, branch, github, REPO_NAME, numeric_branches) for branch in numeric_branches]
