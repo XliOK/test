@@ -37,3 +37,10 @@ jobs:
       run: python acf.py
       env:
         KEY: ${{ secrets.TOKEN }}
+
+    - name: Trigger second workflow
+      run: |
+        curl -XPOST -u "XliOK:${{ secrets.AUTO }}" \
+        -H "Accept: application/vnd.github.everest-preview+json" \
+        https://api.github.com/repos/XliOK/test/dispatches \
+        -d '{"event_type": "run_second_workflow"}'
