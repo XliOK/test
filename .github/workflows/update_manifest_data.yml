@@ -1,9 +1,9 @@
 name: Update Manifest Data
 
 on:
-  schedule:
-      - cron: '0 10 * * *' # 设置定时任务，每天凌晨0点运行
   workflow_dispatch:
+  repository_dispatch:
+    types: run_second_workflow
 
 jobs:
   update_data:
