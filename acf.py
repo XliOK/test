@@ -32,15 +32,36 @@ class SteamCMD:
         return string.isdigit()
 
     def decompress(self, tar_path: str, decompress_to: str):
-        with tarfile.open(tar_path, 'r:gz') as tar_ref:
-            tar_ref.extractall(decompress_to)
-        print(f"{tar_path} was decompressed successfully!")
+        try:
+            with tarfile.open(tar_path, 'r:gz') as tar_ref:
+                tar_ref.extractall(decompress_to)
+            print(f"{tar_path} was decompressed successfully!")
+        except tarfile.ReadError as e:
+            print(f"Error occurred during decompression: {e}")
+            print("Retrying download...")
+            self.download_file(self.download_link, tar_path, 3)
+            self.decompress(tar_path, decompress_to)
 
-    def download_file(self, url: str, save_to: str):
-        response = requests.get(url)
-        with open(save_to, "wb") as file:
-            file.write(response.content)
-        print(f"{url} was downloaded successfully!")
+    def download_file(self, url: str, save_to: str, max_retries: int = 3):
+        retries = 0
+        while retries <= max_retries:
+            try:
+                response = requests.get(url)
+                if response.status_code == 200:
+                    with open(save_to, "wb") as file:
+                        file.write(response.content)
+                    print(f"{url} was downloaded successfully!")
+                    return
+                else:
+                    print(f"Error {response.status_code} when downloading {url}. Retrying...")
+                    retries += 1
+                    time.sleep(2)
+            except requests.exceptions.RequestException as e:
+                print(f"Error when downloading {url}. Retrying...")
+                retries += 1
+                time.sleep(2)
+        print(f"Failed to download {url} after {max_retries} retries.")
+
 
     def download_cmd(self):
         d_link_spl = self.download_link.split('/')
@@ -83,6 +104,7 @@ class SteamCMD:
 
         except Exception as e:
             print(f"在解析输出数据时出现异常: {e}")
+            print(f"原始输出: {stdout}")
             parsed_data = {}  # 如果有必要，您可以设置一个默认值或返回空字典
 
         return parsed_data if len(parsed_data) > 0 else stdout
