@@ -75,20 +75,20 @@ class SteamCMD:
     def download_cmd(self):
         d_link_spl = self.download_link.split('/')
         cmp_name = d_link_spl[-1]
-        cmp_file_path = APP_STEAM_CMD_DOWNLOADS_ROOT_PATH / cmp_name
+        cmp_file_path = self.APP_STEAM_CMD_DOWNLOADS_ROOT_PATH / cmp_name
 
-        if APP_STEAM_CMD_EXE_FILE_PATH.exists():
-            print(f"Skip SteamCMD download, installation found: {APP_STEAM_CMD_EXE_FILE_PATH}")
+        if self.APP_STEAM_CMD_EXE_FILE_PATH.exists():
+            print(f"Skip SteamCMD download, installation found: {self.APP_STEAM_CMD_EXE_FILE_PATH}")
         else:
             # Create the downloads directory if it does not exist
-            APP_STEAM_CMD_DOWNLOADS_ROOT_PATH.mkdir(parents=True, exist_ok=True)
+            self.APP_STEAM_CMD_DOWNLOADS_ROOT_PATH.mkdir(parents=True, exist_ok=True)
 
             print('Download latest version of SteamCMD...')
             self.download_file(self.download_link, str(cmp_file_path))
-            print(f"Decompress zip to {APP_STEAM_CMD_INSTALLED_ROOT_PATH}...")
-            self.decompress(str(cmp_file_path), str(APP_STEAM_CMD_INSTALLED_ROOT_PATH))
-            os.chmod(str(APP_STEAM_CMD_INSTALLED_ROOT_PATH), 0o755)  # Add this line
-            os.chmod(str(APP_STEAM_CMD_EXE_FILE_PATH), 0o755)
+            print(f"Decompress zip to {self.APP_STEAM_CMD_INSTALLED_ROOT_PATH}...")
+            self.decompress(str(cmp_file_path), str(self.APP_STEAM_CMD_INSTALLED_ROOT_PATH))
+            os.chmod(str(self.APP_STEAM_CMD_INSTALLED_ROOT_PATH), 0o755)  # Add this line
+            os.chmod(str(self.APP_STEAM_CMD_EXE_FILE_PATH), 0o755)
 
 
     def parse_stdout(self, stdout: str) -> Dict[str, Any]:
@@ -195,9 +195,9 @@ class SteamCMD:
 
     def exec_raw(self, commands: List[str]) -> subprocess.CompletedProcess:
         return subprocess.run(
-            [str(APP_STEAM_CMD_EXE_FILE_PATH), '@ShutdownOnFailedCommand', '1', '@NoPromptForPassword', '1', '+login',
+            [str(self.APP_STEAM_CMD_EXE_FILE_PATH), '@ShutdownOnFailedCommand', '1', '@NoPromptForPassword', '1', '+login',
              'anonymous', *commands, '+quit'],
-            cwd=str(APP_STEAM_CMD_INSTALLED_ROOT_PATH),
+            cwd=str(self.APP_STEAM_CMD_INSTALLED_ROOT_PATH),
             encoding='utf8',
             errors='replace',
             stdout=subprocess.PIPE,
@@ -220,7 +220,7 @@ class SteamCMD:
 
             # CLEANUP
             print('Remove junk and cache from SteamCMD...')
-            app_cache_dir = APP_STEAM_CMD_INSTALLED_ROOT_PATH / 'appcache'
+            app_cache_dir = self.APP_STEAM_CMD_INSTALLED_ROOT_PATH / 'appcache'
             if app_cache_dir.exists():
                 shutil.rmtree(app_cache_dir)
 
