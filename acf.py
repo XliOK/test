@@ -313,6 +313,7 @@ def execute_github_operations(github, repo_name, app_id, numeric_branches):
         acf_file_name = f"appmanifest_{app_id}.acf"
         if os.path.exists(acf_file_name):
             upload_acf_to_repo(github, repo_name, app_id, acf_file_name)
+            os.remove(acf_file_name)
         else:
             print(f"文件 {acf_file_name} 不存在，跳过上传.")
     else:
