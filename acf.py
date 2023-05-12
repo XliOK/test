@@ -7,7 +7,6 @@ import vdf
 import shutil
 import tarfile
 import time
-import threading
 
 from io import BytesIO
 from pathlib import Path
@@ -32,7 +31,6 @@ class SteamCMD:
 
     def __init__(self):
         self.download_link = 'https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz'
-        self.lock = threading.Lock()
 
     @staticmethod
     def is_numeric(string: str) -> bool:
@@ -214,7 +212,7 @@ class SteamCMD:
                     raise ValueError(f"The appId \"{app_id}\" is invalid!")
 
             # DOWNLOAD CMD
-            #self.download_cmd()
+            self.download_cmd()
 
             # CLEANUP
             print('Remove junk and cache from SteamCMD...')
@@ -248,11 +246,10 @@ class SteamCMD:
             print('You have not entered any appId!')
 
     def app_info(self, app_id: str):
-        with self.lock:
-            try:
-                self.apps_info([app_id])
-            except Exception as e:
-                print(f"获取游戏ID {app_id} 的数据时出现错误: {e}")
+        try:
+            self.apps_info([app_id])
+        except Exception as e:
+            print(f"获取游戏ID {app_id} 的数据时出现错误: {e}")
             
 def check_remaining_count(github):
     rate_limit = github.get_rate_limit()
@@ -321,16 +318,11 @@ def process_app_id(app_id: str, github, repo_name: str, numeric_branches: List[s
     with semaphore:
         steamcmd.app_info(app_id)
         execute_github_operations(github, repo_name, app_id, numeric_branches)
-        
-def prepare_steamcmd(steamcmd):
-    print("Preparing SteamCMD...")
-    steamcmd.download_cmd()
     
 if __name__ == "__main__":
     GITHUB_TOKEN = os.environ["KEY"] 
     REPO_NAME = "xxTree/ManifestAutoUpdate"  
     steamcmd = SteamCMD()
-    prepare_steamcmd(steamcmd)
     github = Github(GITHUB_TOKEN)
     check_remaining_count(github)
     numeric_branches = get_all_numeric_branches(github, REPO_NAME)
