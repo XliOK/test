@@ -248,7 +248,7 @@ class SteamCMD:
                 log_file_path = "/home/runner/Steam/logs/stderr.txt"
                 if os.path.exists(log_file_path):
                     with open(log_file_path, "r") as file:
-                    print(file.read())
+                        print(file.read())
                 else:
                     print(f"Log file {log_file_path} does not exist.")
                 print(output_app_ids_data)
