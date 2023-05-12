@@ -203,12 +203,6 @@ class SteamCMD:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
-    
-    def clean_work_dir(self):
-        if self.working_dir.exists():
-            shutil.rmtree(self.working_dir)
-            time.sleep(1)  # 等待一秒让操作系统有时间删除所有的文件和目录
-        self.working_dir.mkdir(parents=True, exist_ok=True)
 
     def apps_info(self, app_ids: List[str]):
         if len(app_ids) > 0:
@@ -328,7 +322,6 @@ def process_app_id(app_id: str, github, repo_name: str, numeric_branches: List[s
     with semaphore:
         working_dir = f"./steamcmd_{instance_id}"
         steamcmd = SteamCMD(working_dir)  # 每个线程都有自己的SteamCMD实例和工作目录
-        steamcmd.clean_work_dir()  # 清理工作目录
         steamcmd.app_info(app_id)
         execute_github_operations(github, repo_name, app_id, numeric_branches)
     
