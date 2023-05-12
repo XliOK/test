@@ -28,9 +28,13 @@ max_threads = 10
 semaphore = Semaphore(max_threads)
 
 class SteamCMD:
-
-    def __init__(self):
+    
+    def __init__(self, working_dir):
         self.download_link = 'https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz'
+        self.working_dir = Path(working_dir)
+        self.APP_STEAM_CMD_DOWNLOADS_ROOT_PATH = self.working_dir / 'downloads'
+        self.APP_STEAM_CMD_INSTALLED_ROOT_PATH = self.working_dir
+        self.APP_STEAM_CMD_EXE_FILE_PATH = self.APP_STEAM_CMD_INSTALLED_ROOT_PATH / 'steamcmd.sh'
 
     @staticmethod
     def is_numeric(string: str) -> bool:
@@ -199,6 +203,12 @@ class SteamCMD:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
+    
+    def clean_work_dir(self):
+        if self.working_dir.exists():
+            shutil.rmtree(self.working_dir)
+            time.sleep(1)  # 等待一秒让操作系统有时间删除所有的文件和目录
+        self.working_dir.mkdir(parents=True, exist_ok=True)
 
     def apps_info(self, app_ids: List[str]):
         if len(app_ids) > 0:
@@ -314,21 +324,23 @@ def execute_github_operations(github, repo_name, app_id, numeric_branches):
     else:
         print(f"应用ID {app_id} 的分支不存在。")
         
-def process_app_id(app_id: str, github, repo_name: str, numeric_branches: List[str]):
+def process_app_id(app_id: str, github, repo_name: str, numeric_branches: List[str], instance_id: int):
     with semaphore:
+        working_dir = f"./steamcmd_{instance_id}"
+        steamcmd = SteamCMD(working_dir)  # 每个线程都有自己的SteamCMD实例和工作目录
+        steamcmd.clean_work_dir()  # 清理工作目录
         steamcmd.app_info(app_id)
         execute_github_operations(github, repo_name, app_id, numeric_branches)
     
 if __name__ == "__main__":
     GITHUB_TOKEN = os.environ["KEY"] 
     REPO_NAME = "xxTree/ManifestAutoUpdate"  
-    steamcmd = SteamCMD()
     github = Github(GITHUB_TOKEN)
     check_remaining_count(github)
     numeric_branches = get_all_numeric_branches(github, REPO_NAME)
 
     with ThreadPoolExecutor(max_threads) as executor:
-        futures = [executor.submit(process_app_id, branch, github, REPO_NAME, numeric_branches) for branch in numeric_branches]
+        futures = [executor.submit(process_app_id, branch, github, REPO_NAME, numeric_branches, idx % max_threads) for idx, branch in enumerate(numeric_branches)]
 
         for future in as_completed(futures):
             try:
