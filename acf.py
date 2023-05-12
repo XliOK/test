@@ -24,7 +24,7 @@ APP_STEAM_CMD_DOWNLOADS_ROOT_PATH = APP_ROOT_PATH / 'steamcmd' / 'downloads'
 APP_STEAM_CMD_INSTALLED_ROOT_PATH = APP_ROOT_PATH / 'steamcmd'
 APP_STEAM_CMD_EXE_FILE_PATH = APP_STEAM_CMD_INSTALLED_ROOT_PATH / 'steamcmd.sh'
 
-max_threads = 10
+max_threads = 2
 semaphore = Semaphore(max_threads)
 
 class SteamCMD:
