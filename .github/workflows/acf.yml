@@ -2,7 +2,7 @@ name: Run Python script and upload ACF files
 
 on:
   schedule:
-      - cron: '0 5 * * *' # 设置定时任务，每天凌晨0点运行
+      - cron: '0 6 * * *' # 设置定时任务，每天凌晨0点运行
   workflow_dispatch:
 
 jobs:
