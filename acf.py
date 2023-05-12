@@ -31,7 +31,7 @@ class SteamCMD:
     
     def __init__(self, working_dir):
         self.download_link = 'https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz'
-        self.working_dir = Path(working_dir)
+        self.working_dir = APP_ROOT_PATH / Path(working_dir)
         self.APP_STEAM_CMD_DOWNLOADS_ROOT_PATH = self.working_dir / 'downloads'
         self.APP_STEAM_CMD_INSTALLED_ROOT_PATH = self.working_dir
         self.APP_STEAM_CMD_EXE_FILE_PATH = self.APP_STEAM_CMD_INSTALLED_ROOT_PATH / 'steamcmd.sh'
