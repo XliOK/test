@@ -14,9 +14,6 @@ from urllib.request import urlretrieve
 from typing import Dict, Any, List, Tuple
 from github import Github
 from datetime import datetime
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from threading import Semaphore
-
 
 APP_ROOT_PATH = Path(os.path.abspath(os.getcwd()))
 APP_STEAM_APPS_ROOT_PATH = APP_ROOT_PATH / 'steamapps'
@@ -24,71 +21,41 @@ APP_STEAM_CMD_DOWNLOADS_ROOT_PATH = APP_ROOT_PATH / 'steamcmd' / 'downloads'
 APP_STEAM_CMD_INSTALLED_ROOT_PATH = APP_ROOT_PATH / 'steamcmd'
 APP_STEAM_CMD_EXE_FILE_PATH = APP_STEAM_CMD_INSTALLED_ROOT_PATH / 'steamcmd.sh'
 
-max_threads = 2
-semaphore = Semaphore(max_threads)
-
 class SteamCMD:
-    
-    def __init__(self, working_dir):
+
+    def __init__(self):
         self.download_link = 'https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz'
-        self.working_dir = APP_ROOT_PATH / Path(working_dir)
-        self.APP_STEAM_CMD_DOWNLOADS_ROOT_PATH = self.working_dir / 'downloads'
-        self.APP_STEAM_CMD_INSTALLED_ROOT_PATH = self.working_dir
-        self.APP_STEAM_CMD_EXE_FILE_PATH = self.APP_STEAM_CMD_INSTALLED_ROOT_PATH / 'steamcmd.sh'
 
     @staticmethod
     def is_numeric(string: str) -> bool:
         return string.isdigit()
 
     def decompress(self, tar_path: str, decompress_to: str):
-        try:
-            with tarfile.open(tar_path, 'r:gz') as tar_ref:
-                tar_ref.extractall(decompress_to)
-            print(f"{tar_path} was decompressed successfully!")
-        except tarfile.ReadError as e:
-            print(f"Error occurred during decompression: {e}")
-            print("Retrying download...")
-            self.download_file(self.download_link, tar_path, 3)
-            self.decompress(tar_path, decompress_to)
+        with tarfile.open(tar_path, 'r:gz') as tar_ref:
+            tar_ref.extractall(decompress_to)
+        print(f"{tar_path} was decompressed successfully!")
 
-    def download_file(self, url: str, save_to: str, max_retries: int = 3):
-        retries = 0
-        while retries <= max_retries:
-            try:
-                response = requests.get(url)
-                if response.status_code == 200:
-                    with open(save_to, "wb") as file:
-                        file.write(response.content)
-                    print(f"{url} was downloaded successfully!")
-                    return
-                else:
-                    print(f"Error {response.status_code} when downloading {url}. Retrying...")
-                    retries += 1
-                    time.sleep(2)
-            except requests.exceptions.RequestException as e:
-                print(f"Error when downloading {url}. Retrying...")
-                retries += 1
-                time.sleep(2)
-        print(f"Failed to download {url} after {max_retries} retries.")
-
+    def download_file(self, url: str, save_to: str):
+        response = requests.get(url)
+        with open(save_to, "wb") as file:
+            file.write(response.content)
+        print(f"{url} was downloaded successfully!")
 
     def download_cmd(self):
         d_link_spl = self.download_link.split('/')
         cmp_name = d_link_spl[-1]
-        cmp_file_path = self.APP_STEAM_CMD_DOWNLOADS_ROOT_PATH / cmp_name
+        cmp_file_path = APP_STEAM_CMD_DOWNLOADS_ROOT_PATH / cmp_name
 
-        if self.APP_STEAM_CMD_EXE_FILE_PATH.exists():
-            print(f"Skip SteamCMD download, installation found: {self.APP_STEAM_CMD_EXE_FILE_PATH}")
+        if APP_STEAM_CMD_EXE_FILE_PATH.exists():
+            print(f"Skip SteamCMD download, installation found: {APP_STEAM_CMD_EXE_FILE_PATH}")
         else:
             # Create the downloads directory if it does not exist
-            self.APP_STEAM_CMD_DOWNLOADS_ROOT_PATH.mkdir(parents=True, exist_ok=True)
+            APP_STEAM_CMD_DOWNLOADS_ROOT_PATH.mkdir(parents=True, exist_ok=True)
 
             print('Download latest version of SteamCMD...')
             self.download_file(self.download_link, str(cmp_file_path))
-            print(f"Decompress zip to {self.APP_STEAM_CMD_INSTALLED_ROOT_PATH}...")
-            self.decompress(str(cmp_file_path), str(self.APP_STEAM_CMD_INSTALLED_ROOT_PATH))
-            os.chmod(str(self.APP_STEAM_CMD_INSTALLED_ROOT_PATH), 0o755)  # Add this line
-            os.chmod(str(self.APP_STEAM_CMD_EXE_FILE_PATH), 0o755)
+            print(f"Decompress zip to {APP_STEAM_CMD_INSTALLED_ROOT_PATH}...")
+            self.decompress(str(cmp_file_path), str(APP_STEAM_CMD_INSTALLED_ROOT_PATH))
 
 
     def parse_stdout(self, stdout: str) -> Dict[str, Any]:
@@ -113,7 +80,6 @@ class SteamCMD:
 
         except Exception as e:
             print(f"在解析输出数据时出现异常: {e}")
-            print(f"原始输出: {stdout}")
             parsed_data = {}  # 如果有必要，您可以设置一个默认值或返回空字典
 
         return parsed_data if len(parsed_data) > 0 else stdout
@@ -195,9 +161,9 @@ class SteamCMD:
 
     def exec_raw(self, commands: List[str]) -> subprocess.CompletedProcess:
         return subprocess.run(
-            [str(self.APP_STEAM_CMD_EXE_FILE_PATH), '@ShutdownOnFailedCommand', '1', '@NoPromptForPassword', '1', '+login',
+            [str(APP_STEAM_CMD_EXE_FILE_PATH), '@ShutdownOnFailedCommand', '1', '@NoPromptForPassword', '1', '+login',
              'anonymous', *commands, '+quit'],
-            cwd=str(self.APP_STEAM_CMD_INSTALLED_ROOT_PATH),
+            cwd=str(APP_STEAM_CMD_INSTALLED_ROOT_PATH),
             encoding='utf8',
             errors='replace',
             stdout=subprocess.PIPE,
@@ -220,7 +186,7 @@ class SteamCMD:
 
             # CLEANUP
             print('Remove junk and cache from SteamCMD...')
-            app_cache_dir = self.APP_STEAM_CMD_INSTALLED_ROOT_PATH / 'appcache'
+            app_cache_dir = APP_STEAM_CMD_INSTALLED_ROOT_PATH / 'appcache'
             if app_cache_dir.exists():
                 shutil.rmtree(app_cache_dir)
 
@@ -245,12 +211,6 @@ class SteamCMD:
                     print(f"{manifest} was written successfully!")
             else:
                 print('Unknown error from SteamCMD:')
-                log_file_path = "/home/runner/Steam/logs/stderr.txt"
-                if os.path.exists(log_file_path):
-                    with open(log_file_path, "r") as file:
-                        print(file.read())
-                else:
-                    print(f"Log file {log_file_path} does not exist.")
                 print(output_app_ids_data)
         else:
             print('You have not entered any appId!')
@@ -283,7 +243,7 @@ def get_all_numeric_branches(github, repo_name):
     numeric_branches = []
     all_branches = repo.get_branches()
     for branch in all_branches:
-        if branch.name.isdigit() and int(branch.name) < 100:
+        if branch.name.isdigit() and int(branch.name) > 0:
             numeric_branches.append(branch.name)
 
     return numeric_branches
@@ -319,32 +279,22 @@ def execute_github_operations(github, repo_name, app_id, numeric_branches):
         acf_file_name = f"appmanifest_{app_id}.acf"
         if os.path.exists(acf_file_name):
             upload_acf_to_repo(github, repo_name, app_id, acf_file_name)
-            os.remove(acf_file_name)
         else:
             print(f"文件 {acf_file_name} 不存在，跳过上传.")
     else:
         print(f"应用ID {app_id} 的分支不存在。")
-        
-def process_app_id(app_id: str, github, repo_name: str, numeric_branches: List[str], instance_id: int):
-    with semaphore:
-        working_dir = f"./steamcmd_{instance_id}"
-        steamcmd = SteamCMD(working_dir)  # 每个线程都有自己的SteamCMD实例和工作目录
-        steamcmd.app_info(app_id)
-        execute_github_operations(github, repo_name, app_id, numeric_branches)
-    
+
+
 if __name__ == "__main__":
     GITHUB_TOKEN = os.environ["KEY"] 
     REPO_NAME = "xxTree/ManifestAutoUpdate"  
+    steamcmd = SteamCMD()
     github = Github(GITHUB_TOKEN)
     check_remaining_count(github)
     numeric_branches = get_all_numeric_branches(github, REPO_NAME)
 
-    with ThreadPoolExecutor(max_threads) as executor:
-        futures = [executor.submit(process_app_id, branch, github, REPO_NAME, numeric_branches, idx % max_threads) for idx, branch in enumerate(numeric_branches)]
+    for branch in numeric_branches:
+        app_id = branch
+        steamcmd.app_info(app_id)
 
-        for future in as_completed(futures):
-            try:
-                future.result()
-            except Exception as e:
-                print(f"处理 app_id 时出现错误: {e}")
-
+        execute_github_operations(github, REPO_NAME, app_id, numeric_branches)
