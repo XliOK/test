@@ -1,9 +1,9 @@
 name: Run Python script and upload ACF files
 
 on:
-  schedule:
-      - cron: '0 6 * * *' # 设置定时任务，每天凌晨0点运行
   workflow_dispatch:
+  repository_dispatch:
+    types: [triggered-from-sync-repo]
 
 jobs:
   run-script:
