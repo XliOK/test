@@ -245,7 +245,7 @@ def get_all_numeric_branches(github, repo_name):
     if branches_str is None or branches_str == "":
         print("No branches to process. Exiting.")
         exit(1)
-    return branches_str.split(' ')
+    return branches_str.split(',')
 
 def upload_acf_to_repo(github, repo_name, branch, acf_file_name):
     check_remaining_count(github)
