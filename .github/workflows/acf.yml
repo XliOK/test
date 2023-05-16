@@ -8,8 +8,8 @@ on:
 jobs:
   run-script:
     strategy:
-        matrix:
-          group: [0, 1, 2, 3]
+      matrix:
+        group: [0, 1, 2, 3]
     runs-on: ubuntu-latest
 
     steps:
@@ -63,6 +63,11 @@ jobs:
         KEY: ${{ secrets.TOKEN }}
         BRANCHES: ${{ steps.get_branches.outputs.branches }}
 
+  trigger-workflow:
+    needs: run-script
+    runs-on: ubuntu-latest
+
+    steps:
     - name: Trigger second workflow
       run: |
         curl -XPOST -u "XliOK:${{ secrets.AUTO }}" \
