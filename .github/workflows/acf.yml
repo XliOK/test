@@ -30,7 +30,7 @@ jobs:
             group_branches+=(${branches[i]})
           fi
         done
-        echo "::set-output name=branches::${group_branches[@]}"
+        echo "::set-output name=branches::$(IFS=,; echo "${group_branches[*]}")"
 
     - name: Set up Python
       uses: actions/setup-python@v2
