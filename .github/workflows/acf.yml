@@ -8,6 +8,7 @@ on:
 jobs:
   run-script:
     strategy:
+      fail-fast: true
       matrix:
         group: [0, 1, 2, 3]
     runs-on: ubuntu-latest
