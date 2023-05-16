@@ -13,14 +13,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Check out repository
+    - name: Check out current repository
+      uses: actions/checkout@v2
+      
+    - name: Check out wxy1343/ManifestAutoUpdate repository
       uses: actions/checkout@v2
       with:
         repository: 'xxTree/ManifestAutoUpdate'
+        path: 'other_repo'
         
     - name: Get all numeric branches
       id: get_branches
       run: |
+        cd other_repo
         git fetch origin --no-tags --quiet
         branches=($(git ls-remote --heads origin | grep -Eo "refs/heads/[0-9]+$" | grep -Eo "[0-9]+$"))
         group_branches=()
