@@ -220,6 +220,9 @@ class SteamCMD:
             self.apps_info([app_id])
         except Exception as e:
             print(f"获取游戏ID {app_id} 的数据时出现错误: {e}")
+            acf_file_name = f"appmanifest_{app_id}.acf"
+            if os.path.exists(acf_file_name):
+                os.remove(acf_file_name)
             
 def check_remaining_count(github):
     rate_limit = github.get_rate_limit()
@@ -238,15 +241,11 @@ def check_remaining_count(github):
         print(f"限制将在 {reset_time_datetime} 重置,现在时间是{datetime.now()}")
 
 def get_all_numeric_branches(github, repo_name):
-    check_remaining_count(github)
-    repo = github.get_repo(repo_name)
-    numeric_branches = []
-    all_branches = repo.get_branches()
-    for branch in all_branches:
-        if branch.name.isdigit() and int(branch.name) > 0:
-            numeric_branches.append(branch.name)
-
-    return numeric_branches
+    branches_str = os.getenv('BRANCHES')
+    if branches_str is None or branches_str == "":
+        print("No branches to process. Exiting.")
+        exit(1)
+    return branches_str.split(' ')
 
 def upload_acf_to_repo(github, repo_name, branch, acf_file_name):
     check_remaining_count(github)
