@@ -15,8 +15,6 @@ jobs:
     steps:
     - name: Check out repository
       uses: actions/checkout@v2
-      with:
-        repository: 'xxTree/ManifestAutoUpdate'
 	
     - name: Get all numeric branches
       id: get_branches
