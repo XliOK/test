@@ -248,30 +248,33 @@ def get_all_numeric_branches(github, repo_name):
     return branches_str.split(',')
 
 def upload_acf_to_repo(github, repo_name, branch, acf_file_name):
-    check_remaining_count(github)
-    repo = github.get_repo(repo_name)
-    with open(acf_file_name, 'rb') as file:
-        content = file.read()
-
-    file_exists = False
     try:
         check_remaining_count(github)
-        file_obj = repo.get_contents(acf_file_name, ref=branch)
-        file_exists = True
-    except:
-        pass
+        repo = github.get_repo(repo_name)
+        with open(acf_file_name, 'rb') as file:
+            content = file.read()
 
-    if not file_exists or (file_exists and file_obj.decoded_content != content):
-        commit_message = f"Update {acf_file_name}"
-        if file_exists:
+        file_exists = False
+        try:
             check_remaining_count(github)
-            repo.update_file(acf_file_name, commit_message, content, file_obj.sha, branch=branch)
+            file_obj = repo.get_contents(acf_file_name, ref=branch)
+            file_exists = True
+        except:
+            pass
+
+        if not file_exists or (file_exists and file_obj.decoded_content != content):
+            commit_message = f"Update {acf_file_name}"
+            if file_exists:
+                check_remaining_count(github)
+                repo.update_file(acf_file_name, commit_message, content, file_obj.sha, branch=branch)
+            else:
+                check_remaining_count(github)
+                repo.create_file(acf_file_name, commit_message, content, branch=branch)
+            print(f"{acf_file_name} has been uploaded to branch {branch}.")
         else:
-            check_remaining_count(github)
-            repo.create_file(acf_file_name, commit_message, content, branch=branch)
-        print(f"{acf_file_name} has been uploaded to branch {branch}.")
-    else:
-        print(f"{acf_file_name} has not changed, skipping upload.")
+            print(f"{acf_file_name} has not changed, skipping upload.")
+    except github.GithubException as e:
+        print(f"Github exception occurred: {e}")
         
 def execute_github_operations(github, repo_name, app_id, numeric_branches):
     if app_id in numeric_branches:
