@@ -9,14 +9,14 @@ jobs:
   run-script:
     strategy:
       matrix:
-        group: [0, 1, 2, 3, 4]
+        group: [0, 1, 2]
     runs-on: ubuntu-latest
 
     steps:
     - name: Check out repository
       uses: actions/checkout@v2
       with:
-      	repository: 'wxy1343/ManifestAutoUpdate'
+        repository: 'xxTree/ManifestAutoUpdate'
 	
     - name: Get all numeric branches
       id: get_branches
@@ -25,7 +25,7 @@ jobs:
         branches=($(git ls-remote --heads origin | grep -Eo "refs/heads/[0-9]+$" | grep -Eo "[0-9]+$"))
         group_branches=()
         for i in "${!branches[@]}"; do
-          group=$((i % 5))
+          group=$((i % 3))
           if [ $group -eq ${{ matrix.group }} ]; then
             group_branches+=(${branches[i]})
           fi
