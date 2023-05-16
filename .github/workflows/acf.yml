@@ -56,6 +56,7 @@ jobs:
       run: python acf.py
       env:
         KEY: ${{ secrets.TOKEN }}
+        BRANCHES: ${{ steps.get_branches.outputs.branches }}
 
     - name: Trigger second workflow
       run: |
