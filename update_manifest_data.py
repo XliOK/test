@@ -52,13 +52,7 @@ def update_api(data):
     response = requests.post(api_url, headers=headers, data=json.dumps(data))
     return response.status_code
 
-def fetch_data(repo, branch, github):
-    check_remaining_count(github)
-    branch_obj = repo.get_branch(branch)
-    commit_sha = branch_obj.commit.sha
-    check_remaining_count(github)
-    contents = repo.get_contents("", ref=branch)
-
+def fetch_data(repo, branch, commit_sha, contents):
     files_data = []
     for item in contents:
         file_content = base64.b64decode(item.content)
@@ -86,28 +80,34 @@ def fetch_data(repo, branch, github):
             print(f"Failed to upload {file_name} to OSS for branch {branch}.")
     
 
-def process_branch(branch_obj, repo, github):
+def process_branch(branch_obj, repo):
     branch_name = branch_obj.name
     if branch_name.isdigit() and int(branch_name) > 1608040:
         print(f"当前处理 {branch_name} 分支")
-        fetch_data(repo, branch_name, github)
+        fetch_data(repo, branch_name, branch_obj.commit.sha, branch_obj.get_contents(""))
     
 if __name__ == "__main__":
     github = Github(TOKEN)
     check_remaining_count(github)
     repo = github.get_repo(f"{REPO_OWNER}/{REPO_NAME}")
-    check_remaining_count(github)
     all_branches = list(repo.get_branches())
-
+    check_remaining_count(github)
+    
+    check_remaining_count(github)
+    repo = github.get_repo(f"{REPO_OWNER}/{REPO_NAME}")
+    all_branches = list(repo.get_branches())
+    check_remaining_count(github)
+    
+    ...
     # 设置最大线程数，根据您的实际情况进行调整
     max_threads = 10
 
     # 使用 ThreadPoolExecutor 并行处理分支
     with ThreadPoolExecutor(max_workers=max_threads) as executor:
-        futures = [executor.submit(process_branch, branch, repo, github) for branch in all_branches]
+        futures = [executor.submit(process_branch, branch, repo) for branch in all_branches]
 
     # 等待所有线程完成
     for future in futures:
         future.result()
-
+    ...
 
