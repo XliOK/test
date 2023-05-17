@@ -95,7 +95,7 @@ if __name__ == "__main__":
     check_remaining_count(github)
     
     # 设置最大线程数，根据您的实际情况进行调整
-    max_threads = 10
+    max_threads = 4
 
     # 使用 ThreadPoolExecutor 并行处理分支
     with ThreadPoolExecutor(max_workers=max_threads) as executor:
