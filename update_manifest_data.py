@@ -21,14 +21,14 @@ headers = {
     "Authorization": f"token {TOKEN}"
 }
 
-def check_remaining_count(github):
+def check_remaining_count(github, rema = 1):
     rate_limit = github.get_rate_limit()
     remaining = rate_limit.core.remaining
     reset_time = rate_limit.core.reset
     reset_time_timestamp = reset_time.timestamp()
     reset_time_datetime = datetime.fromtimestamp(reset_time_timestamp)
 
-    if remaining <= 200:
+    if remaining <= rema:
         wait_time = reset_time_datetime - datetime.now()
         wait_seconds = wait_time.total_seconds()
         print(f"暂停程序 {wait_seconds} 秒,直到 {reset_time_datetime}。现在的时间是 {datetime.now()}")
@@ -80,26 +80,25 @@ def fetch_data(repo, branch, commit_sha, contents):
             print(f"Failed to upload {file_name} to OSS for branch {branch}.")
     
 
-def process_branch(branch_obj, repo):
+def process_branch(branch_obj, repo, github):
     branch_name = branch_obj.name
     if branch_name.isdigit() and int(branch_name) > 0:
         print(f"当前处理 {branch_name} 分支")
+        check_remaining_count(github)
         fetch_data(repo, branch_name, branch_obj.commit.sha, repo.get_contents("", ref=branch_name))
     
 if __name__ == "__main__":
     github = Github(TOKEN)
-    check_remaining_count(github)
+    check_remaining_count(github, 200)
     repo = github.get_repo(f"{REPO_OWNER}/{REPO_NAME}")
-    check_remaining_count(github)
     all_branches = list(repo.get_branches())
-    check_remaining_count(github)
     
     # 设置最大线程数，根据您的实际情况进行调整
     max_threads = 4
 
     # 使用 ThreadPoolExecutor 并行处理分支
     with ThreadPoolExecutor(max_workers=max_threads) as executor:
-        futures = [executor.submit(process_branch, branch, repo) for branch in all_branches]
+        futures = [executor.submit(process_branch, branch, repo, github) for branch in all_branches]
 
     # 等待所有线程完成
     for future in futures:
