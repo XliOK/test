@@ -28,7 +28,7 @@ def check_remaining_count(github):
     reset_time_timestamp = reset_time.timestamp()
     reset_time_datetime = datetime.fromtimestamp(reset_time_timestamp)
 
-    if remaining <= 1:
+    if remaining <= 200:
         wait_time = reset_time_datetime - datetime.now()
         wait_seconds = wait_time.total_seconds()
         print(f"暂停程序 {wait_seconds} 秒,直到 {reset_time_datetime}。现在的时间是 {datetime.now()}")
@@ -82,7 +82,7 @@ def fetch_data(repo, branch, commit_sha, contents):
 
 def process_branch(branch_obj, repo):
     branch_name = branch_obj.name
-    if branch_name.isdigit() and int(branch_name) > 1608040:
+    if branch_name.isdigit() and int(branch_name) > 0:
         print(f"当前处理 {branch_name} 分支")
         fetch_data(repo, branch_name, branch_obj.commit.sha, repo.get_contents("", ref=branch_name))
     
@@ -94,12 +94,6 @@ if __name__ == "__main__":
     all_branches = list(repo.get_branches())
     check_remaining_count(github)
     
-    check_remaining_count(github)
-    repo = github.get_repo(f"{REPO_OWNER}/{REPO_NAME}")
-    check_remaining_count(github)
-    all_branches = list(repo.get_branches())
-    check_remaining_count(github)
-    '''
     # 设置最大线程数，根据您的实际情况进行调整
     max_threads = 10
 
@@ -110,4 +104,3 @@ if __name__ == "__main__":
     # 等待所有线程完成
     for future in futures:
         future.result()
-    '''
