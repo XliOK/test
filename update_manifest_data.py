@@ -84,7 +84,7 @@ def process_branch(branch_obj, repo):
     branch_name = branch_obj.name
     if branch_name.isdigit() and int(branch_name) > 1608040:
         print(f"当前处理 {branch_name} 分支")
-        fetch_data(repo, branch_name, branch_obj.commit.sha, branch_obj.get_contents(""))
+        fetch_data(repo, branch_name, branch_obj.commit.sha, repo.get_contents("", ref=branch_name))
     
 if __name__ == "__main__":
     github = Github(TOKEN)
