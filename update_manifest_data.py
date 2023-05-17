@@ -88,17 +88,9 @@ def process_branch(branch_obj, repo):
     
 if __name__ == "__main__":
     github = Github(TOKEN)
-    check_remaining_count(github)
     repo = github.get_repo(f"{REPO_OWNER}/{REPO_NAME}")
     all_branches = list(repo.get_branches())
-    check_remaining_count(github)
     
-    check_remaining_count(github)
-    repo = github.get_repo(f"{REPO_OWNER}/{REPO_NAME}")
-    all_branches = list(repo.get_branches())
-    check_remaining_count(github)
-    
-    '''
     # 设置最大线程数，根据您的实际情况进行调整
     max_threads = 10
 
@@ -109,5 +101,4 @@ if __name__ == "__main__":
     # 等待所有线程完成
     for future in futures:
         future.result()
-    '''
 
