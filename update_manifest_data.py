@@ -82,7 +82,7 @@ def fetch_data(repo, branch, commit_sha, contents):
 
 def process_branch(branch_obj, repo, github):
     branch_name = branch_obj.name
-    if branch_name.isdigit() and int(branch_name) > 0:
+    if branch_name.isdigit() and int(branch_name) > 2286770:
         print(f"当前处理 {branch_name} 分支")
         check_remaining_count(github)
         fetch_data(repo, branch_name, branch_obj.commit.sha, repo.get_contents("", ref=branch_name))
@@ -94,7 +94,7 @@ if __name__ == "__main__":
     all_branches = list(repo.get_branches())
     
     # 设置最大线程数，根据您的实际情况进行调整
-    max_threads = 4
+    max_threads = 3
 
     # 使用 ThreadPoolExecutor 并行处理分支
     with ThreadPoolExecutor(max_workers=max_threads) as executor:
