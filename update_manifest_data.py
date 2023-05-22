@@ -93,6 +93,10 @@ if __name__ == "__main__":
     repo = github.get_repo(f"{REPO_OWNER}/{REPO_NAME}")
     all_branches = list(repo.get_branches())
     
+    current_day = datetime.now().day
+    if current_day % 2 == 0:
+        all_branches.reverse() 
+    
     # 设置最大线程数，根据您的实际情况进行调整
     max_threads = 3
 
