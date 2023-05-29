@@ -48,6 +48,32 @@ jobs:
         python -m pip install --upgrade pip
         pip install requests vdf PyGithub
 
+    - name: Get all app ids
+      id: get_app_ids
+      run: |
+        import requests
+        import json
+        url = 'http://your_flask_server:port/get_app_ids' # 更改为你的Flask服务器的地址和端口
+        response = requests.get(url)
+        app_ids = response.json()
+        group_app_ids=[]
+        for i in range(len(app_ids)):
+          group = i % 4
+          if group == ${{ matrix.group }}:
+            group_app_ids.append(app_ids[i])
+        print(f"::set-output name=app_ids::{','.join(group_app_ids)}")
+      shell: python
+
+    - name: Choose branches
+      id: choose_branches
+      run: |
+        use_app_ids = False  #如果是 'true' 则使用 app_ids，否则使用 branches
+        if use_app_ids == True:
+          echo "::set-output name=branches::${{ steps.get_app_ids.outputs.app_ids }}"
+        else:
+          echo "::set-output name=branches::${{ steps.get_branches.outputs.branches }}"
+      shell: python
+
     - name: Create required directories
       run: |
         mkdir -p debug/steamcmd/installed
@@ -62,7 +88,7 @@ jobs:
       run: python acf.py
       env:
         KEY: ${{ secrets.TOKEN }}
-        BRANCHES: ${{ steps.get_branches.outputs.branches }}
+        BRANCHES: ${{ steps.choose_branches.outputs.branches }}
 
   trigger-workflow:
     needs: run-script
