@@ -90,7 +90,7 @@ def fetch_data(repo, branch, commit_sha, contents):
 
 def process_branch(branch_obj, repo, github):
     branch_name = branch_obj.name
-    if branch_name.isdigit() and int(branch_name) > 0:
+    if branch_name.isdigit() and int(branch_name) == 1245620:
         print(f"当前处理 {branch_name} 分支")
         check_remaining_count(github)
         fetch_data(repo, branch_name, branch_obj.commit.sha, repo.get_contents("", ref=branch_name))
