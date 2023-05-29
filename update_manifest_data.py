@@ -97,7 +97,7 @@ def process_branch(branch_obj, repo, github):
 
 def process_app_id(app_id, repo, github):
     branch_name = app_id  # Assuming app_id is equivalent to branch_name.
-    if branch_name.isdigit() and int(branch_name) > 0:
+    if branch_name.isdigit() and int(branch_name) == 1245620:
         print(f"当前处理 {branch_name} 分支")
         check_remaining_count(github)
         fetch_data(repo, branch_name, repo.get_branch(branch_name).commit.sha, repo.get_contents("", ref=branch_name))
