@@ -152,7 +152,8 @@ class SteamCMD:
         }
 
         if len(app_installed_depots) > 0:
-            app_manifest_output["AppState"]["InstalledDepots"] = app_installed_depots
+            #app_manifest_output["AppState"]["InstalledDepots"] = app_installed_depots
+            app_manifest_output["AppState"]["InstalledDepots"] = {}
 
         if len(app_shared_depots) > 0:
             app_manifest_output["AppState"]["SharedDepots"] = app_shared_depots
