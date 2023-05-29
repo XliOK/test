@@ -21,6 +21,14 @@ headers = {
     "Authorization": f"token {TOKEN}"
 }
 
+def get_app_ids_from_api():
+    response = requests.get("http://your-server-address/get_app_ids")
+    if response.status_code == 200:
+        return response.json()
+    else:
+        print(f"Failed to get app ids from API with status code: {response.status_code}")
+        return []
+
 def check_remaining_count(github, rema = 1):
     rate_limit = github.get_rate_limit()
     remaining = rate_limit.core.remaining
@@ -86,12 +94,22 @@ def process_branch(branch_obj, repo, github):
         print(f"当前处理 {branch_name} 分支")
         check_remaining_count(github)
         fetch_data(repo, branch_name, branch_obj.commit.sha, repo.get_contents("", ref=branch_name))
+
+def process_app_id(app_id, repo, github):
+    branch_name = app_id  # Assuming app_id is equivalent to branch_name.
+    if branch_name.isdigit() and int(branch_name) > 0:
+        print(f"当前处理 {branch_name} 分支")
+        check_remaining_count(github)
+        fetch_data(repo, branch_name, repo.get_branch(branch_name).commit.sha, repo.get_contents("", ref=branch_name))
+
     
 if __name__ == "__main__":
     github = Github(TOKEN)
     check_remaining_count(github, 200)
     repo = github.get_repo(f"{REPO_OWNER}/{REPO_NAME}")
+    
     all_branches = list(repo.get_branches())
+    #all_branches = get_app_ids_from_api()
     
     current_day = datetime.now().day
     if current_day % 2 == 0:
@@ -103,6 +121,8 @@ if __name__ == "__main__":
     # 使用 ThreadPoolExecutor 并行处理分支
     with ThreadPoolExecutor(max_workers=max_threads) as executor:
         futures = [executor.submit(process_branch, branch, repo, github) for branch in all_branches]
+    #with ThreadPoolExecutor(max_workers=max_threads) as executor:
+        #futures = [executor.submit(process_app_id, app_id, repo, github) for app_id in all_branches]
 
     # 等待所有线程完成
     for future in futures:
