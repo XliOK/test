@@ -132,7 +132,7 @@ class SteamCMD:
                 "Universe": 1,
                 "LauncherPath": "",
                 "name": app_name,
-                "StateFlags": 6,
+                "StateFlags": 4,
                 "installdir": app_install_directory,
                 "LastUpdated": 0,
                 "SizeOnDisk": app_size,
