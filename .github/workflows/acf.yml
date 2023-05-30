@@ -67,13 +67,16 @@ jobs:
     - name: Choose branches
       id: choose_branches
       run: |
-        use_app_ids = False  #如果是 'true' 则使用 app_ids，否则使用 branches
-        if use_app_ids == True:
+        use_app_ids=false # if true, use app_ids; otherwise, use branches
+        if [[ "$use_app_ids" == "true" ]]; then
+          echo "use_app_ids=${{ steps.get_app_ids.outputs.app_ids }}"
           echo "::set-output name=branches::${{ steps.get_app_ids.outputs.app_ids }}"
-        else:
+        else
+          echo "use_branches=${{ steps.get_branches.outputs.branches }}"
           echo "::set-output name=branches::${{ steps.get_branches.outputs.branches }}"
-      shell: python
-
+        fi
+      shell: bash
+  
     - name: Create required directories
       run: |
         mkdir -p debug/steamcmd/installed
