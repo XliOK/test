@@ -53,7 +53,7 @@ jobs:
       run: |
         import requests
         import json
-        url = 'http://your_flask_server:port/get_app_ids' # 更改为你的Flask服务器的地址和端口
+        url = 'http://8.134.179.236:8080/get_app_ids' # 更改为你的Flask服务器的地址和端口
         response = requests.get(url)
         app_ids = response.json()
         group_app_ids=[]
