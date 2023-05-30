@@ -63,29 +63,32 @@ def update_api(data):
 def fetch_data(repo, branch, commit_sha, contents):
     files_data = []
     for item in contents:
-        file_content = base64.b64decode(item.content)
+        if item.size > 1000000:  # File larger than 1MB
+            file_content = requests.get(item.download_url, headers=headers).content
+        else:
+            file_content = base64.b64decode(item.content)
         file_name = item.path.split("/")[-1]
         file_content_base64 = base64.b64encode(file_content).decode("utf-8")
         files_data.append({"name": file_name, "content": file_content_base64})
-        #files_data.append(file_name)
+
     files_names = [data["name"] for data in files_data]
     status_code = update_api({"branch": branch + "_t","sha": commit_sha,"paths": files_names})
     if status_code == 200:
         print(f"API updated successfully for branch {branch}.")
     else:
         print(f"Failed to update API for branch {branch} with status code: {status_code}")
-    
+
     for data in files_data:
         file_name = data["name"]
         content_base64 = data["content"]
         content = base64.b64decode(content_base64)
-
         uploaded = upload_to_oss(branch, file_name, content)
 
         if uploaded:
             print(f"Uploaded {file_name} to OSS for branch {branch}.")
         else:
             print(f"Failed to upload {file_name} to OSS for branch {branch}.")
+
     
 
 def process_branch(branch_obj, repo, github):
