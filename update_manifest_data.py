@@ -63,7 +63,7 @@ def update_api(data):
 def fetch_data(repo, branch, commit_sha, contents):
     files_data = []
     for item in contents:
-        if item.size > 1000000:  # File larger than 1MB
+        if item.size > 999999:  # File larger than 1MB
             file_content = requests.get(item.download_url, headers=headers).content
         else:
             file_content = base64.b64decode(item.content)
