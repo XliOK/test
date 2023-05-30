@@ -22,7 +22,7 @@ headers = {
 }
 
 def get_app_ids_from_api():
-    response = requests.get("http://your-server-address/get_app_ids")
+    response = requests.get("http://8.134.179.236:8080/get_app_ids")
     if response.status_code == 200:
         return response.json()
     else:
